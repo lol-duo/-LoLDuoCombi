@@ -1,62 +1,57 @@
 package com.lolduo.duo.entity.gameInfo;
 
-import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeSet;
 
 @Entity
 @NoArgsConstructor
 @Getter
 @Table(name = "double_match")
-@TypeDef(name = "json", typeClass = JsonStringType.class)
-public class DoubleMatchEntity implements IMatchEntity{
+public class DoubleMatchEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
     @Column(name = "date")
     private LocalDate date;
-    @Column(name = "tier")
-    private String tier;
+    @Column(name = "position1")
+    private String position1;
+    @Column(name = "position2")
+    private String position2;
+    @Column(name = "championId1")
+    private Long championId1;
+    @Column(name = "championId2")
+    private Long championId2;
+    @Column(name = "mainRune1")
+    private Long mainRune1;
+    @Column(name = "mainRune2")
+    private Long mainRune2;
+    @Column(name = "all_count")
+    private Long allCount;
 
-    @Column(name = "win")
-    private Boolean win;
+    @Column(name = "win_count")
+    private Long winCount;
 
-    @Type(type = "json")
-    @Column(name = "position", columnDefinition = "json")
-    private Map<Long, String> positionMap;
+    public void setAllCount(Long allCount) {
+        this.allCount = allCount;
+    }
 
-    @Type(type = "json")
-    @Column(name = "item_list", columnDefinition = "json")
-    private Map<Long,List<Long>> itemListMap;
+    public void setWinCount(Long winCount) {
+        this.winCount = winCount;
+    }
 
-    @Type(type = "json")
-    @Column(name = "spell_list", columnDefinition = "json")
-    private Map<Long,TreeSet<Long>> spellListMap;
-    @Type(type = "json")
-    @Column(name = "champion",columnDefinition = "json")
-    private TreeSet<Long> championList;
-
-    @Type(type = "json")
-    @Column(name = "perk_list", columnDefinition = "json")
-    private Map<Long,List<Long>> perkListMap;
-
-    public DoubleMatchEntity(LocalDate date, String tier, Boolean win, Map<Long, String> positionMap, Map<Long, List<Long>> itemListMap, Map<Long, TreeSet<Long>> spellListMap, TreeSet<Long> championList, Map<Long, List<Long>> perkListMap) {
+    public DoubleMatchEntity(LocalDate date, String position1, String position2, Long championId1, Long championId2, Long mainRune1, Long mainRune2, Long allCount, Long winCount) {
         this.date = date;
-        this.tier = tier;
-        this.win = win;
-        this.positionMap = positionMap;
-        this.itemListMap = itemListMap;
-        this.spellListMap = spellListMap;
-        this.championList = championList;
-        this.perkListMap = perkListMap;
+        this.position1 = position1;
+        this.position2 = position2;
+        this.championId1 = championId1;
+        this.championId2 = championId2;
+        this.mainRune1 = mainRune1;
+        this.mainRune2 = mainRune2;
+        this.allCount = allCount;
+        this.winCount = winCount;
     }
 }
