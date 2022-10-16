@@ -66,11 +66,12 @@ public class RiotService implements ApplicationRunner{
     }
     private void makeMatchDetail(int number,LocalDate date){
         log.info("parameter date : " + date.format(DateTimeFormatter.ISO_LOCAL_DATE) );
-        long matchSize = matchDetailRepository.findSizeByDate(date).orElse(0L);
+        String dateString = date.format(DateTimeFormatter.ISO_LOCAL_DATE);
+        long matchSize = matchDetailRepository.findSizeByDate(dateString).orElse(0L);
         long start = 0L;
         log.info("makeMatchDetail function matchSize : " + matchSize );
         while(start < matchSize) {
-            List<MatchDetailEntity> matchDetailEntityList = matchDetailRepository.findAllByDate(date,start);
+            List<MatchDetailEntity> matchDetailEntityList = matchDetailRepository.findAllByDate(dateString,start);
             log.info( "makeMatchDetail - processing, " + start+ " / " + matchSize);
             matchDetailEntityList.forEach(matchDetailEntity -> {
                 MatchDto matchInfo = matchDetailEntity.getMatchInfo();
