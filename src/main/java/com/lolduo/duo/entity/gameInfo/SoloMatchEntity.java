@@ -8,7 +8,7 @@ import java.time.LocalDate;
 @Entity
 @NoArgsConstructor
 @Getter
-@Table(name = "solo_match")
+@Table(name = "solo_match", indexes = {@Index(name = "champion_id_index",columnList = "champion_id"),@Index(name = "position_index",columnList = "position"),@Index(name = "main_rune_index",columnList = "main_rune") })
 public class SoloMatchEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,9 +18,9 @@ public class SoloMatchEntity{
     private LocalDate date;
     @Column(name = "position")
     private String position;
-    @Column(name = "championId")
+    @Column(name = "champion_id")
     private Long championId;
-    @Column(name = "mainRune")
+    @Column(name = "main_rune")
     private Long mainRune;
     @Column(name = "all_count")
     private Long allCount;

@@ -9,7 +9,8 @@ import java.time.LocalDate;
 @Entity
 @NoArgsConstructor
 @Getter
-@Table(name = "double_match")
+@Table(name = "double_match", indexes = {@Index(name = "champion_id1_index",columnList = "champion_id1"),@Index(name = "position1_index",columnList = "position1"),@Index(name = "main_rune1_index",columnList = "main_rune1"),@Index(name = "champion_id2_index",columnList = "champion_id2"),@Index(name = "position2_index",columnList = "position2"),@Index(name = "main_rune2_index",columnList = "main_rune2")})
+
 public class DoubleMatchEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,13 +22,13 @@ public class DoubleMatchEntity{
     private String position1;
     @Column(name = "position2")
     private String position2;
-    @Column(name = "championId1")
+    @Column(name = "champion_id1")
     private Long championId1;
-    @Column(name = "championId2")
+    @Column(name = "champion_id2")
     private Long championId2;
-    @Column(name = "mainRune1")
+    @Column(name = "main_rune1")
     private Long mainRune1;
-    @Column(name = "mainRune2")
+    @Column(name = "main_rune2")
     private Long mainRune2;
     @Column(name = "all_count")
     private Long allCount;

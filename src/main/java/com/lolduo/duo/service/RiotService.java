@@ -5,9 +5,11 @@ import com.lolduo.duo.dto.RiotAPI.match_v5.MatchDto;
 import com.lolduo.duo.dto.RiotAPI.match_v5.Participant;
 import com.lolduo.duo.dto.RiotAPI.match_v5.PerkStyle;
 import com.lolduo.duo.entity.MatchDetailEntity;
+import com.lolduo.duo.entity.PositionNullMatchIdEntity;
 import com.lolduo.duo.entity.gameInfo.DoubleMatchEntity;
 import com.lolduo.duo.entity.gameInfo.SoloMatchEntity;
 import com.lolduo.duo.repository.MatchDetailRepository;
+import com.lolduo.duo.repository.PositionNullMatchIdRepository;
 import com.lolduo.duo.repository.gameInfo.DoubleMatchRepository;
 import com.lolduo.duo.repository.gameInfo.SoloMatchRepository;
 import com.lolduo.duo.service.slack.SlackNotifyService;
@@ -37,6 +39,8 @@ public class RiotService implements ApplicationRunner{
     private final DoubleMatchRepository doubleMatchRepository;
     private final MatchDetailRepository matchDetailRepository;
     private final SlackNotifyService slackNotifyService;
+    private final PositionNullMatchIdRepository positionNullMatchIdRepository;
+    private final TimeCheckComponent timeCheckComponent;
     @Override
     public void run(ApplicationArguments args) throws Exception{
         All();
@@ -48,6 +52,10 @@ public class RiotService implements ApplicationRunner{
         makeMatchDetail(2,localDate);
         slackNotifyService.sendMessage(slackNotifyService.nowTime() + "에 " + localDate.format(DateTimeFormatter.ISO_LOCAL_DATE) + "일자 SoloInfo 만들기 End");
 
+    }
+    private void savePositionNullMatch(MatchDetailEntity matchDetailEntity){
+        PositionNullMatchIdEntity positionNullMatchIdEntity = new PositionNullMatchIdEntity(matchDetailEntity);
+        positionNullMatchIdRepository.save(positionNullMatchIdEntity);
     }
     private void makeMatchDetail(int number,LocalDate date){
         log.info("parameter date : " + date.format(DateTimeFormatter.ISO_LOCAL_DATE) );
@@ -65,10 +73,16 @@ public class RiotService implements ApplicationRunner{
                 Map<String, Boolean> visitedLose = new HashMap<>();
 
                 matchInfo.getInfo().getParticipants().forEach(participant -> {
-                    if (participant.getWin()) {
-                        visitedWin.put(participant.getPuuid(), false);
-                    } else {
-                        visitedLose.put(participant.getPuuid(), false);
+                    if(participant.getTeamPosition().equals("")){
+                        savePositionNullMatch(matchDetailEntity);
+                        return;
+                    }
+                    else {
+                        if (participant.getWin()) {
+                            visitedWin.put(participant.getPuuid(), false);
+                        } else {
+                            visitedLose.put(participant.getPuuid(), false);
+                        }
                     }
                 });
                 combination(matchInfo, new ArrayList<>(), visitedWin, true, number, 0);
@@ -121,7 +135,11 @@ public class RiotService implements ApplicationRunner{
             String position = participant.getTeamPosition();
             Long championId = participant.getChampionId();
             Long mainRune = getMainRune(participant);
+
+            timeCheckComponent.checkStart();
             SoloMatchEntity soloMatchEntity = soloMatchRepository.findByPositionAndChampionIdAndMainRune(position,championId,mainRune).orElse(null);
+            log.info("findByPositionAndChampionIdAndMainRune : " + timeCheckComponent.checkEnd());
+
             if(soloMatchEntity == null) {
                 soloMatchEntity = new SoloMatchEntity(matchDate,position,championId,mainRune,1L,win ? 1L : 0L);
             }
@@ -131,7 +149,11 @@ public class RiotService implements ApplicationRunner{
                    soloMatchEntity.setWinCount(soloMatchEntity.getWinCount()+1);
                 }
             }
+
+            timeCheckComponent.checkStart();
             soloMatchRepository.save(soloMatchEntity);
+            log.info("soloMatchRepository.save : " + timeCheckComponent.checkEnd());
+
         });
     }
     private void saveDoubleMatch(List<Participant> participantList, Boolean win, Long creationTimeStamp){
