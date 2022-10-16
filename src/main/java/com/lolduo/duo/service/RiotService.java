@@ -58,7 +58,7 @@ public class RiotService implements ApplicationRunner{
         LocalDate localDate = LocalDate.parse("2022-09-19");
         log.info("LocalDate : " + localDate.format(DateTimeFormatter.ISO_LOCAL_DATE) );
 
-        makeMatchDetail(1,localDate);
+        //makeMatchDetail(1,localDate);
 
         makeMatchDetail(2,localDate);
 
@@ -160,7 +160,7 @@ public class RiotService implements ApplicationRunner{
         if(championIdArr[0] > championIdArr[1]){
             swapChampionInfo(positionArr,championIdArr,mainRuneArr);
         }
-        DoubleMatchEntity doubleMatchEntity = doubleMatchRepository.findByPosition1AndPosition2AndChampionId1AndPosition2AndMainRune1AndMainRune2(positionArr[0],positionArr[1],championIdArr[0],championIdArr[1],mainRuneArr[0],mainRuneArr[1]).orElse(null);
+        DoubleMatchEntity doubleMatchEntity = doubleMatchRepository.findByPosition1AndPosition2AndChampionId1AndChampionId2AndMainRune1AndMainRune2(positionArr[0],positionArr[1],championIdArr[0],championIdArr[1],mainRuneArr[0],mainRuneArr[1]).orElse(null);
         if(doubleMatchEntity == null){
             doubleMatchEntity = new DoubleMatchEntity(matchDate,positionArr[0],positionArr[1],championIdArr[0],championIdArr[1],mainRuneArr[0],mainRuneArr[1],1L,win ? 1L : 0L);
         }

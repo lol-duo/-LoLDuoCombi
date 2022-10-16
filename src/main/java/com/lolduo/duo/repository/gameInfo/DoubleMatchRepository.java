@@ -14,5 +14,5 @@ public interface DoubleMatchRepository extends JpaRepository<DoubleMatchEntity, 
     List<DoubleMatchEntity> findAllByDate(LocalDate localDate,Long start);
     @Query(value ="select count(*) from double_match where date =?1",nativeQuery = true)
     Optional<Long> findSizeByDate(LocalDate localdate);
-    Optional<DoubleMatchEntity> findByPosition1AndPosition2AndChampionId1AndPosition2AndMainRune1AndMainRune2(String position1,String position2,Long champion1,Long champion2,Long mainRune1,Long mainRune2);
+    Optional<DoubleMatchEntity> findByPosition1AndPosition2AndChampionId1AndChampionId2AndMainRune1AndMainRune2(String position1,String position2,Long champion1,Long champion2,Long mainRune1,Long mainRune2);
 }
