@@ -16,8 +16,6 @@ public class SoloMatchEntity{
     private Long id;
     @Column(name = "date")
     private LocalDate date;
-    @Column(name = "win")
-    private Boolean win;
     @Column(name = "position")
     private String position;
     @Column(name = "championId")

@@ -42,26 +42,11 @@ public class RiotService implements ApplicationRunner{
         All();
     }
     private void All(){
-        /*
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        Date d ;
-        LocalDate localDate ;
-        try {
-            d = dateFormat.parse("2022-09-19");
-            localDate = d.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
-         */
-        slackNotifyService.sendMessage(slackNotifyService.nowTime() + "SoloInfo 만들기 start");
-
         LocalDate localDate = LocalDate.parse("2022-09-19");
-        log.info("LocalDate : " + localDate.format(DateTimeFormatter.ISO_LOCAL_DATE) );
-
-        //makeMatchDetail(1,localDate);
-
+        slackNotifyService.sendMessage(slackNotifyService.nowTime() + "에 시작하는 + " + localDate.format(DateTimeFormatter.ISO_LOCAL_DATE) + "일자 SoloInfo 만들기 Start");
+        makeMatchDetail(1,localDate);
         makeMatchDetail(2,localDate);
-
+        slackNotifyService.sendMessage(slackNotifyService.nowTime() + "에 " + localDate.format(DateTimeFormatter.ISO_LOCAL_DATE) + "일자 SoloInfo 만들기 End");
 
     }
     private void makeMatchDetail(int number,LocalDate date){
@@ -90,9 +75,11 @@ public class RiotService implements ApplicationRunner{
                 combination(matchInfo, new ArrayList<>(), visitedLose, false, number, 0);
             });
             start +=100;
-            //test
-            if(start > 2000) break;
+            if(start % 1000 == 0){
+                slackNotifyService.sendMessage( "number = "+number + " makeMatchDetail processing, " + start+ " / " + matchSize );
+            }
         }
+
     }
     private void combination(MatchDto matchInfo, List<Participant> participantList,Map<String,Boolean> visited,Boolean win,int number,int start){
         if(participantList.size()==number){
