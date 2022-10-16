@@ -64,6 +64,8 @@ public class RiotService implements ApplicationRunner{
         long start = 0L;
         log.info("makeMatchDetail function matchSize : " + matchSize );
         while(start < matchSize) {
+            Long time = System.currentTimeMillis();
+            log.info(start + " time check start: " );
             List<MatchDetailEntity> matchDetailEntityList = matchDetailRepository.findAllByDate(dateString,start);
             log.info( "makeMatchDetail - processing, " + start+ " / " + matchSize);
             matchDetailEntityList.forEach(matchDetailEntity -> {
@@ -92,6 +94,7 @@ public class RiotService implements ApplicationRunner{
             if(start % 1000 == 0){
                 slackNotifyService.sendMessage( "number = "+number + " makeMatchDetail processing, " + start+ " / " + matchSize );
             }
+            log.info(start + " time check end : " + (System.currentTimeMillis() - time) );
         }
 
     }
@@ -149,7 +152,6 @@ public class RiotService implements ApplicationRunner{
                    soloMatchEntity.setWinCount(soloMatchEntity.getWinCount()+1);
                 }
             }
-
             timeCheckComponent.checkStart();
             soloMatchRepository.save(soloMatchEntity);
             log.info("soloMatchRepository.save : " + timeCheckComponent.checkEnd());
