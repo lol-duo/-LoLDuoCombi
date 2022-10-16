@@ -81,7 +81,7 @@ spring:
       on-profile: devserverdb
   datasource:
     username: root
-    url: jdbc:mariadb://${rds.mariadb.endpoint}:3306/lolduo_dev
+    url: jdbc:mariadb://${rds.mariadb.endpoint}:3306/lolduo
     password: ${rds.mariadb.password}
   jpa:
     hibernate:
