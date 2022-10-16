@@ -69,6 +69,8 @@ public class RiotService implements ApplicationRunner{
             List<MatchDetailEntity> matchDetailEntityList = matchDetailRepository.findAllByDate(dateString,start);
             log.info( "makeMatchDetail - processing, " + start+ " / " + matchSize);
             matchDetailEntityList.forEach(matchDetailEntity -> {
+                final Long startTime = System.currentTimeMillis();
+
                 MatchDto matchInfo = matchDetailEntity.getMatchInfo();
 
                 Map<String, Boolean> visitedWin = new HashMap<>();
@@ -89,6 +91,7 @@ public class RiotService implements ApplicationRunner{
                 });
                 combination(matchInfo, new ArrayList<>(), visitedWin, true, number, 0);
                 combination(matchInfo, new ArrayList<>(), visitedLose, false, number, 0);
+                log.info("makeMatchDetail Spent Time : " +  (System.currentTimeMillis() - startTime));
             });
             start +=100;
             if(start % 1000 == 0){
@@ -100,9 +103,13 @@ public class RiotService implements ApplicationRunner{
     }
     private void combination(MatchDto matchInfo, List<Participant> participantList,Map<String,Boolean> visited,Boolean win,int number,int start){
         if(participantList.size()==number){
+            timeCheckComponent.checkStart();
             saveMatch(participantList,win,number, matchInfo.getInfo().getGameCreation());
+            log.info("saveMatch : " + timeCheckComponent.checkEnd());
             return;
         }
+
+        Long startTime = System.currentTimeMillis();
         for(int i = start; i< matchInfo.getInfo().getParticipants().size(); i++){
             Participant participant = matchInfo.getInfo().getParticipants().get(i);
             if (visited.containsKey(participant.getPuuid()) && !visited.get(participant.getPuuid())) {
@@ -113,6 +120,7 @@ public class RiotService implements ApplicationRunner{
                 visited.put(participant.getPuuid(),false);
             }
         }
+        log.info("combination Logic Spent Time : " + (System.currentTimeMillis() - startTime) );
     }
     private void saveMatch(List<Participant> participantList, Boolean win, int number, Long creationTimeStamp){
         if(number==1){
@@ -139,9 +147,7 @@ public class RiotService implements ApplicationRunner{
             Long championId = participant.getChampionId();
             Long mainRune = getMainRune(participant);
 
-            timeCheckComponent.checkStart();
             SoloMatchEntity soloMatchEntity = soloMatchRepository.findByPositionAndChampionIdAndMainRune(position,championId,mainRune).orElse(null);
-            log.info("findByPositionAndChampionIdAndMainRune : " + timeCheckComponent.checkEnd());
 
             if(soloMatchEntity == null) {
                 soloMatchEntity = new SoloMatchEntity(matchDate,position,championId,mainRune,1L,win ? 1L : 0L);
@@ -152,10 +158,7 @@ public class RiotService implements ApplicationRunner{
                    soloMatchEntity.setWinCount(soloMatchEntity.getWinCount()+1);
                 }
             }
-            timeCheckComponent.checkStart();
             soloMatchRepository.save(soloMatchEntity);
-            log.info("soloMatchRepository.save : " + timeCheckComponent.checkEnd());
-
         });
     }
     private void saveDoubleMatch(List<Participant> participantList, Boolean win, Long creationTimeStamp){
