@@ -18,13 +18,14 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Service;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.*;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @EnableScheduling
@@ -41,6 +42,7 @@ public class RiotService implements ApplicationRunner{
         All();
     }
     private void All(){
+        /*
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date d ;
         LocalDate localDate ;
@@ -50,13 +52,20 @@ public class RiotService implements ApplicationRunner{
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
+         */
+        slackNotifyService.sendMessage(slackNotifyService.nowTime() + "SoloInfo 만들기 start");
+
+        LocalDate localDate = LocalDate.parse("2022-09-19");
+        log.info("LocalDate : " + localDate.format(DateTimeFormatter.ISO_LOCAL_DATE) );
 
         makeMatchDetail(1,localDate);
+
         makeMatchDetail(2,localDate);
-        slackNotifyService.sendMessage(slackNotifyService.nowTime() + "SoloInfo 만들기 start");
+
 
     }
     private void makeMatchDetail(int number,LocalDate date){
+        log.info("parameter date : " + date.format(DateTimeFormatter.ISO_LOCAL_DATE) );
         long matchSize = matchDetailRepository.findSizeByDate(date).orElse(0L);
         long start = 0L;
         log.info("makeMatchDetail function matchSize : " + matchSize );
@@ -79,7 +88,7 @@ public class RiotService implements ApplicationRunner{
                 combination(matchInfo, new ArrayList<>(), visitedWin, true, number, 0);
                 combination(matchInfo, new ArrayList<>(), visitedLose, false, number, 0);
             });
-            start +=1000;
+            start +=100;
             //test
             if(start > 2000) break;
         }
