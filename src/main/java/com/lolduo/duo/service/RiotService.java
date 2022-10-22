@@ -48,7 +48,7 @@ public class RiotService implements ApplicationRunner{
     private void All(){
         LocalDate localDate = LocalDate.parse("2022-09-19");
         slackNotifyService.sendMessage(slackNotifyService.nowTime() + "에 시작하는 + " + localDate.format(DateTimeFormatter.ISO_LOCAL_DATE) + "일자 SoloInfo 만들기 Start");
-        makeMatchDetail(1,localDate);
+        //makeMatchDetail(1,localDate);
         makeMatchDetail(2,localDate);
         slackNotifyService.sendMessage(slackNotifyService.nowTime() + "에 " + localDate.format(DateTimeFormatter.ISO_LOCAL_DATE) + "일자 SoloInfo 만들기 End");
 
@@ -98,6 +98,9 @@ public class RiotService implements ApplicationRunner{
                 slackNotifyService.sendMessage( "number = "+number + " makeMatchDetail processing, " + start+ " / " + matchSize );
             }
             log.info(start + " time check end : " + (System.currentTimeMillis() - time) );
+            if(start == 5000){
+                break;
+            }
         }
 
     }
