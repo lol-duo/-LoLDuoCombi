@@ -48,8 +48,8 @@ public class RiotService implements ApplicationRunner{
     private void All(){
         LocalDate localDate = LocalDate.parse("2022-09-19");
         slackNotifyService.sendMessage(slackNotifyService.nowTime() + "에 시작하는 + " + localDate.format(DateTimeFormatter.ISO_LOCAL_DATE) + "일자 SoloInfo 만들기 Start");
-        //makeMatchDetail(1,localDate);
-        makeMatchDetail(2,localDate);
+        makeMatchDetail(1,localDate);
+        //makeMatchDetail(2,localDate);
         slackNotifyService.sendMessage(slackNotifyService.nowTime() + "에 " + localDate.format(DateTimeFormatter.ISO_LOCAL_DATE) + "일자 SoloInfo 만들기 End");
 
     }
@@ -61,7 +61,7 @@ public class RiotService implements ApplicationRunner{
         log.info("parameter date : " + date.format(DateTimeFormatter.ISO_LOCAL_DATE) );
         String dateString = date.format(DateTimeFormatter.ISO_LOCAL_DATE);
         long matchSize = matchDetailRepository.findSizeByDate(dateString).orElse(0L);
-        long start = 5100L;
+        long start = 44000L;
         log.info("makeMatchDetail function matchSize : " + matchSize );
         while(start < matchSize) {
             Long time = System.currentTimeMillis();
@@ -89,8 +89,14 @@ public class RiotService implements ApplicationRunner{
                         }
                     }
                 });
-                combination(matchInfo, new ArrayList<>(), visitedWin, true, number, 0);
-                combination(matchInfo, new ArrayList<>(), visitedLose, false, number, 0);
+                if(number==1){
+                    iteration(matchInfo,new ArrayList<>(),visitedWin,true);
+                    iteration(matchInfo,new ArrayList<>(),visitedLose,false);
+                }
+                else if(number==2) {
+                    combination(matchInfo, new ArrayList<>(), visitedWin, true, number, 0);
+                    combination(matchInfo, new ArrayList<>(), visitedLose, false, number, 0);
+                }
                 log.info("makeMatchDetail Spent Time : " +  (System.currentTimeMillis() - startTime));
             });
             start +=100;
@@ -98,11 +104,21 @@ public class RiotService implements ApplicationRunner{
                 slackNotifyService.sendMessage( "number = "+number + " makeMatchDetail processing, " + start+ " / " + matchSize );
             }
             log.info(start + " time check end : " + (System.currentTimeMillis() - time) );
-            if(start == 15000){
+            if(start == 60000){
                 break;
             }
         }
 
+    }
+    private void iteration(MatchDto matchInfo, List<Participant> participantList,Map<String,Boolean> visited,Boolean win){
+        for(int i = 0 ; i < matchInfo.getInfo().getParticipants().size();i++){
+            Participant participant = matchInfo.getInfo().getParticipants().get(i);
+            if(visited.containsKey(participant.getPuuid())) {
+                participantList.add(participant);
+                saveMatch(participantList, win, 1, matchInfo.getInfo().getGameCreation());
+                participantList.remove(participant);
+            }
+        }
     }
     private void combination(MatchDto matchInfo, List<Participant> participantList,Map<String,Boolean> visited,Boolean win,int number,int start){
         if(participantList.size()==number){
