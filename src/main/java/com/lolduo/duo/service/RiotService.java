@@ -61,7 +61,7 @@ public class RiotService implements ApplicationRunner{
         log.info("parameter date : " + date.format(DateTimeFormatter.ISO_LOCAL_DATE) );
         String dateString = date.format(DateTimeFormatter.ISO_LOCAL_DATE);
         long matchSize = matchDetailRepository.findSizeByDate(dateString).orElse(0L);
-        long start = 0L;
+        long start = 5100L;
         log.info("makeMatchDetail function matchSize : " + matchSize );
         while(start < matchSize) {
             Long time = System.currentTimeMillis();
@@ -98,7 +98,7 @@ public class RiotService implements ApplicationRunner{
                 slackNotifyService.sendMessage( "number = "+number + " makeMatchDetail processing, " + start+ " / " + matchSize );
             }
             log.info(start + " time check end : " + (System.currentTimeMillis() - time) );
-            if(start == 5000){
+            if(start == 15000){
                 break;
             }
         }
