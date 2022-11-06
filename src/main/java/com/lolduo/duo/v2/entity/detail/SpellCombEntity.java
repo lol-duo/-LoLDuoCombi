@@ -21,8 +21,7 @@ public class SpellCombEntity {
     @Column(name = "spell2")
     private Long spell2;
 
-    public SpellCombEntity(Long id, Long spell1, Long spell2) {
-        this.id = id;
+    public SpellCombEntity(Long spell1, Long spell2) {
         this.spell1 = spell1;
         this.spell2 = spell2;
     }

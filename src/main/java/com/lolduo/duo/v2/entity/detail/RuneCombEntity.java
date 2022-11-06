@@ -35,8 +35,7 @@ public class RuneCombEntity {
     @Column(name = "sub_rune2")
     private Long subRune2;
 
-    public RuneCombEntity(Long id, Long mainRuneConcept, Long mainRune0, Long subRuneConcept, Long mainRune1, Long mainRune2, Long mainRune3, Long subRune1, Long subRune2) {
-        this.id = id;
+    public RuneCombEntity(Long mainRuneConcept, Long mainRune0, Long subRuneConcept, Long mainRune1, Long mainRune2, Long mainRune3, Long subRune1, Long subRune2) {
         this.mainRuneConcept = mainRuneConcept;
         this.mainRune0 = mainRune0;
         this.subRuneConcept = subRuneConcept;
