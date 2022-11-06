@@ -43,7 +43,7 @@ spring:
     hibernate:
       ddl-auto: update
     defer-datasource-initialization: true
-    show-sql: true
+    show-sql: false
 slack:
   token: ${localkey.slackapi.token}
 riot:
@@ -59,7 +59,7 @@ spring:
       on-profile: serverdb
   datasource:
     username: root
-    url: jdbc:mariadb://${rds.mariadb.endpoint}:3306/lolduo
+    url: jdbc:mariadb://${rds.mariadb.endpoint}:3306/lolduo_dev
     password: ${rds.mariadb.password}
   jpa:
     hibernate:
@@ -81,7 +81,7 @@ spring:
       on-profile: devserverdb
   datasource:
     username: root
-    url: jdbc:mariadb://${rds.mariadb.endpoint}:3306/lolduo
+    url: jdbc:mariadb://${rds.mariadb.endpoint}:3306/lolduo_dev
     password: ${rds.mariadb.password}
   jpa:
     hibernate:

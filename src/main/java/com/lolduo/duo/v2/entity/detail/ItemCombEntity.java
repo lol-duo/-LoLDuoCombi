@@ -25,8 +25,7 @@ public class ItemCombEntity {
     @Column(name = "item3")
     private Long item3;
 
-    public ItemCombEntity(Long id, Long item1, Long item2, Long item3) {
-        this.id = id;
+    public ItemCombEntity(Long item1, Long item2, Long item3) {
         this.item1 = item1;
         this.item2 = item2;
         this.item3 = item3;

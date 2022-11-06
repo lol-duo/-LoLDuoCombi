@@ -29,8 +29,7 @@ public class SoloChampionCombEntity {
     @Column(name = "main_rune")
     private Long mainRune;
 
-    public SoloChampionCombEntity(Long id, Long championId, String position, Long mainRune) {
-        this.id = id;
+    public SoloChampionCombEntity(Long championId, String position, Long mainRune) {
         this.championId = championId;
         this.position = position;
         this.mainRune = mainRune;
