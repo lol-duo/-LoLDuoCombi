@@ -1,12 +1,18 @@
 package com.lolduo.duo.v2.service;
 
 import com.lolduo.duo.v2.dto.RiotAPI.match_v5.Participant;
+import com.lolduo.duo.v2.dto.RiotAPI.match_v5.PerkStyle;
 import com.lolduo.duo.v2.entity.detail.*;
+import com.lolduo.duo.v2.entity.gameInfo.SoloMatchEntity;
 import com.lolduo.duo.v2.repository.detail.*;
+import com.lolduo.duo.v2.repository.gameInfo.SoloMatchRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -21,7 +27,7 @@ public class SoloParser {
     private final RuneCombRepository runeCombRepository;
     private final SoloChampionCombRepository soloChampionCombRepository;
     private final SoloMatchDetailRepository soloMatchDetailRepository;
-
+    private final SoloMatchRepository soloMatchRepository;
     public SpellCombEntity toSpellComb(Participant participant){
         List<Long> spellList = new ArrayList<>();
         spellList.add(participant.getSummoner1Id());
@@ -124,5 +130,33 @@ public class SoloParser {
         log.info("SoloMatchDetailEntity save, soloCombId : {}, winCount : {}, allCount : {}, itemCombId: {}, runeCombId: {}, spellCombId: {}",
                 soloMatchDetailEntity.getSoloCombId(),soloMatchDetailEntity.getWinCount(), soloMatchDetailEntity.getAllCount(), soloMatchDetailEntity.getItemCombId(),soloMatchDetailEntity.getRuneCombId(),soloMatchDetailEntity.getSpellCombId() );
         return soloMatchDetailRepository.save(soloMatchDetailEntity);
+    }
+    public SoloMatchEntity toSoloMatch(boolean win, Long soloCombId, Participant participant,Long creationTimeStamp){
+        LocalDate matchDate = LocalDate.ofInstant(Instant.ofEpochMilli(creationTimeStamp), ZoneId.of("Asia/Seoul"));
+        String position = participant.getTeamPosition();
+        Long championId = participant.getChampionId();
+        Long mainRune = getMainRune(participant);
+        SoloMatchEntity soloMatchEntity;
+        soloMatchEntity = soloMatchRepository.findByPositionAndChampionIdAndMainRune(position,championId,mainRune).orElse(null);
+        if(soloMatchEntity == null) {
+            soloMatchEntity = new SoloMatchEntity(matchDate,position,championId,mainRune,1L,win ? 1L : 0L,soloCombId);
+        }
+        else{
+            soloMatchEntity.setAllCount(soloMatchEntity.getAllCount()+1);
+            if(win){
+                soloMatchEntity.setWinCount(soloMatchEntity.getWinCount()+1);
+            }
+        }
+        return soloMatchRepository.save(soloMatchEntity);
+    }
+    public Long getMainRune(Participant participant){
+        Long MainRune = 0L;
+        for (PerkStyle perkStyle : participant.getPerks().getStyles()) {
+            if (perkStyle.getDescription().equals("primaryStyle")) {
+                MainRune = perkStyle.getSelections().get(0).getPerk();
+                break;
+            }
+        }
+        return MainRune;
     }
 }
