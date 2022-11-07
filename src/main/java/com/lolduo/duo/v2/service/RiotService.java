@@ -60,7 +60,7 @@ public class RiotService implements ApplicationRunner{
         localTest();
     }
     private void localTest(){
-        LocalDate localDate = LocalDate.parse("2022-08-28");
+        LocalDate localDate = LocalDate.parse("2022-11-05");
         makeMatchDetailV2(1,localDate);
         log.info("test end !!");
     }
@@ -266,39 +266,17 @@ public class RiotService implements ApplicationRunner{
             saveDoubleMatch(participantList,win,creationTimeStamp);
         }
     }
-    private Long getMainRune(Participant participant){
-        Long MainRune = 0L;
-        for (PerkStyle perkStyle : participant.getPerks().getStyles()) {
-            if (perkStyle.getDescription().equals("primaryStyle")) {
-                MainRune = perkStyle.getSelections().get(0).getPerk();
-                break;
-            }
-        }
-        return MainRune;
-    }
-    private void saveSoloMatch(List<Participant> participantList,Map<String,List<Long>> participantsItemMap, Boolean win, Long creationTimeStamp){
-        LocalDate matchDate = LocalDate.ofInstant(Instant.ofEpochMilli(creationTimeStamp), ZoneId.of("Asia/Seoul"));
-        participantList.forEach(participant -> {
-            String position = participant.getTeamPosition();
-            Long championId = participant.getChampionId();
-            Long mainRune = getMainRune(participant);
 
-            SoloMatchEntity soloMatchEntity = soloMatchRepository.findByPositionAndChampionIdAndMainRune(position,championId,mainRune).orElse(null);
-            if(soloMatchEntity == null) {
-                soloMatchEntity = new SoloMatchEntity(matchDate,position,championId,mainRune,1L,win ? 1L : 0L);
-            }
-            else{
-                soloMatchEntity.setAllCount(soloMatchEntity.getAllCount()+1);
-                if(win){
-                   soloMatchEntity.setWinCount(soloMatchEntity.getWinCount()+1);
-                }
-            }
-            soloMatchRepository.save(soloMatchEntity);
+    private void saveSoloMatch(List<Participant> participantList,Map<String,List<Long>> participantsItemMap, Boolean win, Long creationTimeStamp){
+        participantList.forEach(participant -> {
 
             SoloChampionCombEntity soloChampionCombEntity = soloParser.toSoloChampionComb(participant);
             ItemCombEntity itemCombEntity = soloParser.toItemComb(participant,participantsItemMap);
             RuneCombEntity runeCombEntity = soloParser.toRuneComb(participant);
             SpellCombEntity spellCombEntity = soloParser.toSpellComb(participant);
+
+            soloParser.toSoloMatch(win,soloChampionCombEntity.getId(),participant,creationTimeStamp);
+
             soloParser.toSoloMatchDetailComb(win,soloChampionCombEntity.getId(),itemCombEntity.getId(),runeCombEntity.getId(),spellCombEntity.getId());
 
         });
@@ -311,7 +289,7 @@ public class RiotService implements ApplicationRunner{
         for(int i = 0 ; i < 2;i++){
             positionArr[i] = participantList.get(i).getTeamPosition();
             championIdArr[i] = participantList.get(i).getChampionId();
-            mainRuneArr[i] = getMainRune(participantList.get(i));
+            mainRuneArr[i] = soloParser.getMainRune(participantList.get(i));
         }
         if(championIdArr[0] > championIdArr[1]){
             swapChampionInfo(positionArr,championIdArr,mainRuneArr);
