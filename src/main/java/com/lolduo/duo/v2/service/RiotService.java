@@ -60,7 +60,7 @@ public class RiotService implements ApplicationRunner{
         localTest();
     }
     private void localTest(){
-        LocalDate localDate = LocalDate.parse("2022-11-05");
+        LocalDate localDate = LocalDate.parse("2022-11-06");
         makeMatchDetailV2(1,localDate);
         log.info("test end !!");
     }
