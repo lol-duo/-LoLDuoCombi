@@ -3,8 +3,10 @@ package com.lolduo.duo.v2.service;
 import com.lolduo.duo.v2.dto.RiotAPI.match_v5.Participant;
 import com.lolduo.duo.v2.dto.RiotAPI.match_v5.PerkStyle;
 import com.lolduo.duo.v2.entity.detail.*;
+import com.lolduo.duo.v2.entity.gameInfo.DoubleMatchEntity;
 import com.lolduo.duo.v2.entity.gameInfo.SoloMatchEntity;
 import com.lolduo.duo.v2.repository.detail.*;
+import com.lolduo.duo.v2.repository.gameInfo.DoubleMatchRepository;
 import com.lolduo.duo.v2.repository.gameInfo.SoloMatchRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +29,11 @@ public class SoloParser {
     private final RuneCombRepository runeCombRepository;
     private final SoloChampionCombRepository soloChampionCombRepository;
     private final SoloMatchDetailRepository soloMatchDetailRepository;
+    private final DoubleMatchDetailRepository doubleMatchDetailRepository;
+
     private final SoloMatchRepository soloMatchRepository;
+    private final DoubleMatchRepository doubleMatchRepository;
+
     public SpellCombEntity toSpellComb(Participant participant){
         List<Long> spellList = new ArrayList<>();
         spellList.add(participant.getSummoner1Id());
@@ -95,6 +101,7 @@ public class SoloParser {
         }
         return runeCombEntity;
     }
+
     public SoloChampionCombEntity toSoloChampionComb(Participant participant){
         Long championId = participant.getChampionId();
         String position = participant.getTeamPosition();
@@ -110,26 +117,47 @@ public class SoloParser {
         }
         return soloChampionCombEntity;
     }
-
     public SoloMatchDetailEntity toSoloMatchDetailComb(boolean win, Long soloCombId, Long itemCombId,Long runeCombId,Long spellCombId){
         SoloMatchDetailEntity soloMatchDetailEntity;
         soloMatchDetailEntity = soloMatchDetailRepository.findBySoloCombIdAndItemCombIdAndRuneCombIdAndSpellCombId(
                 soloCombId,itemCombId,runeCombId,spellCombId).orElse(null);
         if(soloMatchDetailEntity == null){
             if(win)
-                soloMatchDetailEntity = new SoloMatchDetailEntity(soloCombId,1L,1L,itemCombId,runeCombId,spellCombId);
+                soloMatchDetailEntity = new SoloMatchDetailEntity(soloCombId,itemCombId,runeCombId,spellCombId,1L,1L,((double)1L/1L));
             else
-                soloMatchDetailEntity = new SoloMatchDetailEntity(soloCombId,0L,1L,itemCombId,runeCombId,spellCombId);
+                soloMatchDetailEntity = new SoloMatchDetailEntity(soloCombId,itemCombId,runeCombId,spellCombId,0L,1L,((double)0L/1L));
         }
         else{
             if(win)
                 soloMatchDetailEntity.setWinCount(soloMatchDetailEntity.getWinCount()+1);
             soloMatchDetailEntity.setAllCount(soloMatchDetailEntity.getAllCount()+1);
-
+            soloMatchDetailEntity.setWinRate(((double)soloMatchDetailEntity.getWinCount()/soloMatchDetailEntity.getAllCount()));
         }
         log.info("SoloMatchDetailEntity save, soloCombId : {}, winCount : {}, allCount : {}, itemCombId: {}, runeCombId: {}, spellCombId: {}",
                 soloMatchDetailEntity.getSoloCombId(),soloMatchDetailEntity.getWinCount(), soloMatchDetailEntity.getAllCount(), soloMatchDetailEntity.getItemCombId(),soloMatchDetailEntity.getRuneCombId(),soloMatchDetailEntity.getSpellCombId() );
         return soloMatchDetailRepository.save(soloMatchDetailEntity);
+    }
+    public DoubleMatchDetailEntity toDoubleMatchDetailComb(boolean win, Long championCombId1,Long itemCombId1,Long runeCombId1,Long spellCombId1,Long championCombId2,Long itemCombId2,Long runeCombId2,Long spellCombId2){
+        DoubleMatchDetailEntity doubleMatchDetailEntity;
+        doubleMatchDetailEntity = doubleMatchDetailRepository.findByChampionCombId1AndItemCombId1AndRuneCombId1AndSpellCombId1AndChampionCombId2AndItemCombId2AndRuneCombId2AndSpellCombId2(championCombId1,itemCombId1,runeCombId1,spellCombId1,championCombId2,itemCombId2,runeCombId2,spellCombId2).orElse(null);
+        if(doubleMatchDetailEntity ==null){
+            if(win)
+                doubleMatchDetailEntity = new DoubleMatchDetailEntity(championCombId1,itemCombId1,runeCombId1,spellCombId1,championCombId2,itemCombId2,runeCombId2,spellCombId2,1L,1L,((double)1L/1L));
+            else
+                doubleMatchDetailEntity = new DoubleMatchDetailEntity(championCombId1,itemCombId1,runeCombId1,spellCombId1,championCombId2,itemCombId2,runeCombId2,spellCombId2,0L,1L,((double)0L/1L));
+        }
+        else{
+            if(win)
+                doubleMatchDetailEntity.setWinCount(doubleMatchDetailEntity.getWinCount()+1);
+            doubleMatchDetailEntity.setAllCount(doubleMatchDetailEntity.getAllCount()+1);
+            doubleMatchDetailEntity.setWinRate( ((double)doubleMatchDetailEntity.getWinCount()/doubleMatchDetailEntity.getAllCount()) );
+        }
+        log.info("DoubleMatchDetailEntity save, championCombId1 : {},itemCombId1 : {}, runeCombId1 : {}, spellCombId1 : {} \n" +
+                "championCombId2 : {}, itemCombId2 : {}, runeCombId2 : {}, spellCombId2 : {}, winCount : {}, allCount : {}, winRate : {} ",
+                doubleMatchDetailEntity.getChampionCombId1(),doubleMatchDetailEntity.getItemCombId1(),doubleMatchDetailEntity.getRuneCombId1(),doubleMatchDetailEntity.getSpellCombId1(),
+                doubleMatchDetailEntity.getChampionCombId2(),doubleMatchDetailEntity.getItemCombId2(),doubleMatchDetailEntity.getRuneCombId2(),doubleMatchDetailEntity.getSpellCombId2(),
+                doubleMatchDetailEntity.getWinCount(),doubleMatchDetailEntity.getAllCount(),doubleMatchDetailEntity.getWinRate());
+        return doubleMatchDetailRepository.save(doubleMatchDetailEntity);
     }
     public SoloMatchEntity toSoloMatch(boolean win, Long soloCombId, Participant participant,Long creationTimeStamp){
         LocalDate matchDate = LocalDate.ofInstant(Instant.ofEpochMilli(creationTimeStamp), ZoneId.of("Asia/Seoul"));
@@ -139,15 +167,42 @@ public class SoloParser {
         SoloMatchEntity soloMatchEntity;
         soloMatchEntity = soloMatchRepository.findByPositionAndChampionIdAndMainRune(position,championId,mainRune).orElse(null);
         if(soloMatchEntity == null) {
-            soloMatchEntity = new SoloMatchEntity(matchDate,position,championId,mainRune,1L,win ? 1L : 0L,soloCombId);
+            soloMatchEntity = new SoloMatchEntity(matchDate,position,championId,mainRune,1L,win ? 1L : 0L,win ? ((double)1L/1L) : ((double)0L/1L),soloCombId );
         }
         else{
-            soloMatchEntity.setAllCount(soloMatchEntity.getAllCount()+1);
             if(win){
                 soloMatchEntity.setWinCount(soloMatchEntity.getWinCount()+1);
             }
+            soloMatchEntity.setAllCount(soloMatchEntity.getAllCount()+1);
+            soloMatchEntity.setWinRate(((double)soloMatchEntity.getWinCount()/soloMatchEntity.getAllCount()));
         }
         return soloMatchRepository.save(soloMatchEntity);
+    }
+    public DoubleMatchEntity toDoubleMatch(boolean win,Long[] doubleCombIdArr,List<Participant> participantList ,Long creationTimeStamp){
+        LocalDate matchDate = LocalDate.ofInstant(Instant.ofEpochMilli(creationTimeStamp), ZoneId.of("Asia/Seoul"));
+        String[] positionArr = new String[2];
+        Long[] championIdArr = new Long[2];
+        Long[] mainRuneArr = new Long[2];
+        for(int i = 0 ; i < 2;i++){
+            positionArr[i] = participantList.get(i).getTeamPosition();
+            championIdArr[i] = participantList.get(i).getChampionId();
+            mainRuneArr[i] = getMainRune(participantList.get(i));
+        }
+        if(championIdArr[0] > championIdArr[1]){
+            swapChampionInfo(positionArr,championIdArr,mainRuneArr,doubleCombIdArr);
+        }
+        DoubleMatchEntity doubleMatchEntity = doubleMatchRepository.findByPosition1AndPosition2AndChampionId1AndChampionId2AndMainRune1AndMainRune2(positionArr[0],positionArr[1],championIdArr[0],championIdArr[1],mainRuneArr[0],mainRuneArr[1]).orElse(null);
+        if(doubleMatchEntity == null){
+            doubleMatchEntity = new DoubleMatchEntity(matchDate,positionArr[0],positionArr[1],championIdArr[0],championIdArr[1],mainRuneArr[0],mainRuneArr[1],1L,win ? 1L : 0L, win ? ((double)1L/1L) : ((double)0L/1L), doubleCombIdArr[0],doubleCombIdArr[1]);
+        }
+        else{
+            if(win){
+                doubleMatchEntity.setWinCount(doubleMatchEntity.getWinCount()+1);
+            }
+            doubleMatchEntity.setAllCount(doubleMatchEntity.getAllCount()+1);
+            doubleMatchEntity.setWinRate(((double)doubleMatchEntity.getWinCount()/doubleMatchEntity.getAllCount()) );
+        }
+        return doubleMatchRepository.save(doubleMatchEntity);
     }
     public Long getMainRune(Participant participant){
         Long MainRune = 0L;
@@ -158,5 +213,24 @@ public class SoloParser {
             }
         }
         return MainRune;
+    }
+    private void swapChampionInfo(String[] positionArr,Long[] championIdArr, Long[] mainRuneArr,Long[] doubleCombIdArr){
+        if(championIdArr[0] > championIdArr[1]){
+            String tempPo = positionArr[0];
+            positionArr[0] = positionArr[1];
+            positionArr[1] = tempPo;
+
+            Long tempId = championIdArr[0];
+            championIdArr[0] = championIdArr[1];
+            championIdArr[1] = tempId;
+
+            Long tempRu = mainRuneArr[0];
+            mainRuneArr[0] = mainRuneArr[1];
+            mainRuneArr[1] = tempRu;
+
+            Long tempCo = doubleCombIdArr[0];
+            doubleCombIdArr[0] = doubleCombIdArr[1];
+            doubleCombIdArr[1] =tempCo;
+        }
     }
 }

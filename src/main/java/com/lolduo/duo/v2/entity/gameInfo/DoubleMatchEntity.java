@@ -9,7 +9,10 @@ import java.time.LocalDate;
 @Entity
 @NoArgsConstructor
 @Getter
-@Table(name = "double_match")
+@Table(name = "double_match",indexes = {
+        @Index(name="date_index",columnList = "date"),
+        @Index(name="multi_index",columnList = "position1,position2, champion_id1,champion_id2,main_rune1,main_rune2",unique = true),
+        @Index(name="double_match_index",columnList = "all_count,win_rate desc, position1, champion_id1,position2,champion_id2")})
 public class DoubleMatchEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,6 +20,7 @@ public class DoubleMatchEntity{
     private Long id;
     @Column(name = "date")
     private LocalDate date;
+
     @Column(name = "position1")
     private String position1;
     @Column(name = "position2")
@@ -29,11 +33,18 @@ public class DoubleMatchEntity{
     private Long mainRune1;
     @Column(name = "main_rune2")
     private Long mainRune2;
+
     @Column(name = "all_count")
     private Long allCount;
-
     @Column(name = "win_count")
     private Long winCount;
+    @Column(name = "win_rate")
+    private Double winRate;
+
+    @Column(name = "comb_id1")
+    private Long combId1;
+    @Column(name = "comb_id2")
+    private Long combId2;
 
     public void setAllCount(Long allCount) {
         this.allCount = allCount;
@@ -43,7 +54,11 @@ public class DoubleMatchEntity{
         this.winCount = winCount;
     }
 
-    public DoubleMatchEntity(LocalDate date, String position1, String position2, Long championId1, Long championId2, Long mainRune1, Long mainRune2, Long allCount, Long winCount) {
+    public void setWinRate(Double winRate) {
+        this.winRate = winRate;
+    }
+
+    public DoubleMatchEntity(LocalDate date, String position1, String position2, Long championId1, Long championId2, Long mainRune1, Long mainRune2, Long allCount, Long winCount, Double winRate, Long combId1, Long combId2) {
         this.date = date;
         this.position1 = position1;
         this.position2 = position2;
@@ -53,5 +68,8 @@ public class DoubleMatchEntity{
         this.mainRune2 = mainRune2;
         this.allCount = allCount;
         this.winCount = winCount;
+        this.winRate = winRate;
+        this.combId1 = combId1;
+        this.combId2 = combId2;
     }
 }
