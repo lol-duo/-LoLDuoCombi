@@ -9,9 +9,9 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Getter
 @Table(name = "solo_match_detail",indexes = {
-        @Index(name="solo_match_index",columnList = "solo_comb_id, all_count DESC"),
-        @Index(name="multiIndex",columnList = "solo_comb_id, item_comb_id, rune_comb_id, spell_comb_id"),
-        @Index(name="multiIndex2",columnList = "all_count, solo_comb_id, item_comb_id, rune_comb_id, spell_comb_id DESC")})
+        @Index(name="all_count_index",columnList = "all_count"),
+        @Index(name="solo_match_detail_index",columnList = "all_count, win_rate desc, solo_comb_id"),
+        @Index(name="multiIndex",columnList = "solo_comb_id, item_comb_id, rune_comb_id, spell_comb_id")})
 public class SoloMatchDetailEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,11 +20,6 @@ public class SoloMatchDetailEntity {
 
     @Column(name = "solo_comb_id")
     private Long soloCombId;
-    @Column(name = "win_count")
-    private Long winCount;
-    @Column(name = "all_count")
-    private Long allCount;
-
     @Column(name = "item_comb_id")
     private Long itemCombId;
     @Column(name = "rune_comb_id")
@@ -32,13 +27,22 @@ public class SoloMatchDetailEntity {
     @Column(name = "spell_comb_id")
     private Long spellCombId;
 
-    public SoloMatchDetailEntity(Long soloCombId, Long winCount, Long allCount, Long itemCombId, Long runeCombId, Long spellCombId) {
+    @Column(name = "win_count")
+    private Long winCount;
+    @Column(name = "all_count")
+    private Long allCount;
+    @Column(name = "win_rate")
+    private Double winRate;
+
+
+    public SoloMatchDetailEntity(Long soloCombId, Long itemCombId, Long runeCombId, Long spellCombId, Long winCount, Long allCount, Double winRate) {
         this.soloCombId = soloCombId;
-        this.winCount = winCount;
-        this.allCount = allCount;
         this.itemCombId = itemCombId;
         this.runeCombId = runeCombId;
         this.spellCombId = spellCombId;
+        this.winCount = winCount;
+        this.allCount = allCount;
+        this.winRate = winRate;
     }
 
     public void setWinCount(Long winCount) {
@@ -47,5 +51,9 @@ public class SoloMatchDetailEntity {
 
     public void setAllCount(Long allCount) {
         this.allCount = allCount;
+    }
+
+    public void setWinRate(Double winRate) {
+        this.winRate = winRate;
     }
 }

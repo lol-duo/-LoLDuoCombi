@@ -35,10 +35,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @EnableScheduling
@@ -46,8 +43,6 @@ import java.util.Map;
 @Slf4j
 public class RiotService implements ApplicationRunner{
 
-    private final SoloMatchRepository soloMatchRepository;
-    private final DoubleMatchRepository doubleMatchRepository;
     private final MatchDetailRepository matchDetailRepository;
     private final ItemFullRepository itemFullRepository;
     private final SlackNotifyService slackNotifyService;
@@ -60,8 +55,24 @@ public class RiotService implements ApplicationRunner{
         localTest();
     }
     private void localTest(){
-        LocalDate localDate = LocalDate.parse("2022-11-06");
+        LocalDate localDate = LocalDate.parse("2022-11-01");
         makeMatchDetailV2(1,localDate);
+        log.info("2022-11-01 number 1 done !!");
+        makeMatchDetailV2(2,localDate);
+        log.info("2022-11-01 number 2 done !!");
+        log.info("2022-11-01 end !!");
+        localDate = LocalDate.parse("2022-11-02");
+        makeMatchDetailV2(1,localDate);
+        log.info("2022-11-02 number 1 done !!");
+        makeMatchDetailV2(2,localDate);
+        log.info("2022-11-02 number 2 done !!");
+        log.info("2022-11-02 end !!");
+        localDate = LocalDate.parse("2022-11-05");
+        makeMatchDetailV2(1,localDate);
+        log.info("2022-11-05 number 1 done !!");
+        makeMatchDetailV2(2,localDate);
+        log.info("2022-11-05 number 2 done !!");
+        log.info("2022-11-05 end !!");
         log.info("test end !!");
     }
     private void All(){
@@ -90,8 +101,9 @@ public class RiotService implements ApplicationRunner{
         matchTimeLineDto.getInfo().getFrames().forEach(frame -> {
 
             frame.getEvents().forEach(event -> {
-                if(event.getType().equals("ITEM_PURCHASED") &&itemFullList.contains(event.getItemId())){
-                    participantsItemMap.get(matchTimeLineDto.getInfo().getParticipants().get(Math.toIntExact(event.getParticipantId())-1).getPuuid()).add(event.getItemId());
+                if(event.getType().equals("ITEM_PURCHASED") && itemFullList.contains(event.getItemId())){
+                    if(participantsItemMap.get(matchTimeLineDto.getInfo().getParticipants().get(Math.toIntExact(event.getParticipantId())-1).getPuuid()).contains(event.getItemId()) == false)
+                        participantsItemMap.get(matchTimeLineDto.getInfo().getParticipants().get(Math.toIntExact(event.getParticipantId())-1).getPuuid()).add(event.getItemId());
                 }
             });
         });
@@ -154,8 +166,11 @@ public class RiotService implements ApplicationRunner{
                     iteration(matchInfo, participantsItemMap, new ArrayList<>(), visitedLose, false);
                     log.info(start +"번째 lose iteration   spent time : " + (System.currentTimeMillis() - iterationStartTime));
                 } else if (number == 2) {
+                    Long combinationStartTime = System.currentTimeMillis();
                     combination(matchInfo, participantsItemMap, new ArrayList<>(), visitedWin, true, number, 0);
+                    log.info(start +"번째 win combination   spent time : " + (System.currentTimeMillis() - combinationStartTime));
                     combination(matchInfo, participantsItemMap, new ArrayList<>(), visitedLose, false, number, 0);
+                    log.info(start +"번째 lose combination   spent time : " + (System.currentTimeMillis() - combinationStartTime));
                 }
                 log.info(start +"번째 makeMatchDetail  spent time : " + (System.currentTimeMillis() - startTime));
                 start++;
@@ -263,13 +278,12 @@ public class RiotService implements ApplicationRunner{
             //log.info("saveMatch time check : " +(System.currentTimeMillis() - time) + "ms");
         }
         else if(number==2){
-            saveDoubleMatch(participantList,win,creationTimeStamp);
+            saveDoubleMatch(participantList,ParticipantsItemMap,win,creationTimeStamp);
         }
     }
 
     private void saveSoloMatch(List<Participant> participantList,Map<String,List<Long>> participantsItemMap, Boolean win, Long creationTimeStamp){
         participantList.forEach(participant -> {
-
             SoloChampionCombEntity soloChampionCombEntity = soloParser.toSoloChampionComb(participant);
             ItemCombEntity itemCombEntity = soloParser.toItemComb(participant,participantsItemMap);
             RuneCombEntity runeCombEntity = soloParser.toRuneComb(participant);
@@ -281,44 +295,29 @@ public class RiotService implements ApplicationRunner{
 
         });
     }
-    private void saveDoubleMatch(List<Participant> participantList, Boolean win, Long creationTimeStamp){
-        LocalDate matchDate = LocalDate.ofInstant(Instant.ofEpochMilli(creationTimeStamp), ZoneId.of("Asia/Seoul"));
-        String[] positionArr = new String[2];
-        Long[] championIdArr = new Long[2];
-        Long[] mainRuneArr = new Long[2];
-        for(int i = 0 ; i < 2;i++){
-            positionArr[i] = participantList.get(i).getTeamPosition();
-            championIdArr[i] = participantList.get(i).getChampionId();
-            mainRuneArr[i] = soloParser.getMainRune(participantList.get(i));
-        }
-        if(championIdArr[0] > championIdArr[1]){
-            swapChampionInfo(positionArr,championIdArr,mainRuneArr);
-        }
-        DoubleMatchEntity doubleMatchEntity = doubleMatchRepository.findByPosition1AndPosition2AndChampionId1AndChampionId2AndMainRune1AndMainRune2(positionArr[0],positionArr[1],championIdArr[0],championIdArr[1],mainRuneArr[0],mainRuneArr[1]).orElse(null);
-        if(doubleMatchEntity == null){
-            doubleMatchEntity = new DoubleMatchEntity(matchDate,positionArr[0],positionArr[1],championIdArr[0],championIdArr[1],mainRuneArr[0],mainRuneArr[1],1L,win ? 1L : 0L);
-        }
-        else{
-            doubleMatchEntity.setAllCount(doubleMatchEntity.getAllCount()+1);
-            if(win){
-                doubleMatchEntity.setWinCount(doubleMatchEntity.getWinCount()+1);
-            }
-        }
-        doubleMatchRepository.save(doubleMatchEntity);
-    }
-    private void swapChampionInfo(String[] positionArr,Long[] championIdArr, Long[] mainRuneArr){
-        if(championIdArr[0] > championIdArr[1]){
-            String tempPo = positionArr[0];
-            positionArr[0] = positionArr[1];
-            positionArr[1] = tempPo;
+    private void saveDoubleMatch(List<Participant> participantList, Map<String,List<Long>> participantsItemMap,Boolean win, Long creationTimeStamp){
+        Long ChampionId1 = participantList.get(0).getChampionId();
+        Long ChampionId2 = participantList.get(1).getChampionId();
 
-            Long tempId = championIdArr[0];
-            championIdArr[0] = championIdArr[1];
-            championIdArr[1] = tempId;
+        SoloChampionCombEntity soloChampionComb1Entity = soloParser.toSoloChampionComb(participantList.get(0));
+        ItemCombEntity itemComb1Entity = soloParser.toItemComb(participantList.get(0),participantsItemMap);
+        RuneCombEntity runeComb1Entity = soloParser.toRuneComb(participantList.get(0));
+        SpellCombEntity spellComb1Entity = soloParser.toSpellComb(participantList.get(0));
 
-            Long tempRu = mainRuneArr[0];
-            mainRuneArr[0] = mainRuneArr[1];
-            mainRuneArr[1] = tempRu;
+        SoloChampionCombEntity soloChampionComb2Entity = soloParser.toSoloChampionComb(participantList.get(1));
+        ItemCombEntity itemComb2Entity = soloParser.toItemComb(participantList.get(1),participantsItemMap);
+        RuneCombEntity runeComb2Entity = soloParser.toRuneComb(participantList.get(1));
+        SpellCombEntity spellComb2Entity = soloParser.toSpellComb(participantList.get(1));
+
+        Long[] doubleCombIdArr = new Long[2];
+        doubleCombIdArr[0] = soloChampionComb1Entity.getId();
+        doubleCombIdArr[1] = soloChampionComb2Entity.getId();
+        soloParser.toDoubleMatch(win,doubleCombIdArr,participantList,creationTimeStamp);
+        if(ChampionId1 >ChampionId2 ){
+            soloParser.toDoubleMatchDetailComb(win,soloChampionComb2Entity.getId(),itemComb2Entity.getId(),runeComb2Entity.getId(),spellComb2Entity.getId(),soloChampionComb1Entity.getId(),itemComb1Entity.getId(),runeComb1Entity.getId(),spellComb1Entity.getId());
+        }
+        else {
+            soloParser.toDoubleMatchDetailComb(win,soloChampionComb1Entity.getId(),itemComb1Entity.getId(),runeComb1Entity.getId(),spellComb1Entity.getId(),soloChampionComb2Entity.getId(),itemComb2Entity.getId(),runeComb2Entity.getId(),spellComb2Entity.getId());
         }
     }
 }
