@@ -35,10 +35,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @EnableScheduling
@@ -58,9 +55,24 @@ public class RiotService implements ApplicationRunner{
         localTest();
     }
     private void localTest(){
-        LocalDate localDate = LocalDate.parse("2022-11-05");
+        LocalDate localDate = LocalDate.parse("2022-11-01");
         makeMatchDetailV2(1,localDate);
+        log.info("2022-11-01 number 1 done !!");
         makeMatchDetailV2(2,localDate);
+        log.info("2022-11-01 number 2 done !!");
+        log.info("2022-11-01 end !!");
+        localDate = LocalDate.parse("2022-11-02");
+        makeMatchDetailV2(1,localDate);
+        log.info("2022-11-02 number 1 done !!");
+        makeMatchDetailV2(2,localDate);
+        log.info("2022-11-02 number 2 done !!");
+        log.info("2022-11-02 end !!");
+        localDate = LocalDate.parse("2022-11-05");
+        makeMatchDetailV2(1,localDate);
+        log.info("2022-11-05 number 1 done !!");
+        makeMatchDetailV2(2,localDate);
+        log.info("2022-11-05 number 2 done !!");
+        log.info("2022-11-05 end !!");
         log.info("test end !!");
     }
     private void All(){
@@ -89,8 +101,9 @@ public class RiotService implements ApplicationRunner{
         matchTimeLineDto.getInfo().getFrames().forEach(frame -> {
 
             frame.getEvents().forEach(event -> {
-                if(event.getType().equals("ITEM_PURCHASED") &&itemFullList.contains(event.getItemId())){
-                    participantsItemMap.get(matchTimeLineDto.getInfo().getParticipants().get(Math.toIntExact(event.getParticipantId())-1).getPuuid()).add(event.getItemId());
+                if(event.getType().equals("ITEM_PURCHASED") && itemFullList.contains(event.getItemId())){
+                    if(participantsItemMap.get(matchTimeLineDto.getInfo().getParticipants().get(Math.toIntExact(event.getParticipantId())-1).getPuuid()).contains(event.getItemId()) == false)
+                        participantsItemMap.get(matchTimeLineDto.getInfo().getParticipants().get(Math.toIntExact(event.getParticipantId())-1).getPuuid()).add(event.getItemId());
                 }
             });
         });
