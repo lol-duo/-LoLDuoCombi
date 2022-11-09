@@ -283,6 +283,9 @@ public class RiotService implements ApplicationRunner{
         });
     }
     private void saveDoubleMatch(List<Participant> participantList, Map<String,List<Long>> participantsItemMap,Boolean win, Long creationTimeStamp){
+        Long ChampionId1 = participantList.get(0).getChampionId();
+        Long ChampionId2 = participantList.get(1).getChampionId();
+
         SoloChampionCombEntity soloChampionComb1Entity = soloParser.toSoloChampionComb(participantList.get(0));
         ItemCombEntity itemComb1Entity = soloParser.toItemComb(participantList.get(0),participantsItemMap);
         RuneCombEntity runeComb1Entity = soloParser.toRuneComb(participantList.get(0));
@@ -297,7 +300,11 @@ public class RiotService implements ApplicationRunner{
         doubleCombIdArr[0] = soloChampionComb1Entity.getId();
         doubleCombIdArr[1] = soloChampionComb2Entity.getId();
         soloParser.toDoubleMatch(win,doubleCombIdArr,participantList,creationTimeStamp);
-        soloParser.toDoubleMatchDetailComb(win,soloChampionComb1Entity.getId(),itemComb1Entity.getId(),runeComb1Entity.getId(),spellComb1Entity.getId(),soloChampionComb2Entity.getId(),itemComb2Entity.getId(),runeComb2Entity.getId(),spellComb2Entity.getId());
-
+        if(ChampionId1 >ChampionId2 ){
+            soloParser.toDoubleMatchDetailComb(win,soloChampionComb2Entity.getId(),itemComb2Entity.getId(),runeComb2Entity.getId(),spellComb2Entity.getId(),soloChampionComb1Entity.getId(),itemComb1Entity.getId(),runeComb1Entity.getId(),spellComb1Entity.getId());
+        }
+        else {
+            soloParser.toDoubleMatchDetailComb(win,soloChampionComb1Entity.getId(),itemComb1Entity.getId(),runeComb1Entity.getId(),spellComb1Entity.getId(),soloChampionComb2Entity.getId(),itemComb2Entity.getId(),runeComb2Entity.getId(),spellComb2Entity.getId());
+        }
     }
 }
