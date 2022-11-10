@@ -8,15 +8,14 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalDate;
 
 @Entity
 @NoArgsConstructor
-@Table(name = "position_null_match_id")
+@Table(name = "position_null_match_id",indexes = {
+        @Index(name="date_index",columnList = "date"),
+        @Index(name="matchId_index",columnList = "match_id")})
 @Getter
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 public class PositionNullMatchIdEntity {
