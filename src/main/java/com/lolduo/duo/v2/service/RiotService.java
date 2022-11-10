@@ -127,8 +127,9 @@ public class RiotService implements ApplicationRunner{
         while(start < matchSize) {
             Long time = System.currentTimeMillis();
             List<MatchDetailEntity> matchDetailEntityList = matchDetailRepository.findAllByDate(dateString,start);
+            log.info( "matchDetailRepository.findAllByDate: dateString :{}, spentTime {}" ,dateString,time-System.currentTimeMillis());
             log.info( "makeMatchDetailV2 - processing, " + start+ " / " + matchSize);
-
+            Long processing100Time = System.currentTimeMillis();
             for (MatchDetailEntity matchDetailEntity : matchDetailEntityList) {
                 final Long startTime = System.currentTimeMillis();
                 MatchDto matchInfo = matchDetailEntity.getMatchInfo();
@@ -175,6 +176,7 @@ public class RiotService implements ApplicationRunner{
                 log.info(start +"번째 makeMatchDetail  spent time : " + (System.currentTimeMillis() - startTime));
                 start++;
             }
+            log.info("100개 단위 spent Time : " + (System.currentTimeMillis()-processing100Time) +"ms" );
             if(start % 1000 == 0){
                 slackNotifyService.sendMessage( "number = "+number + " makeMatchDetail processing, " + start+ " / " + matchSize );
             }
