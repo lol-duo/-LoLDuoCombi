@@ -56,11 +56,10 @@ public class RiotService implements ApplicationRunner{
     }
     private void localTest(){
         LocalDate localDate = LocalDate.parse("2022-11-01");
-        makeMatchDetailV2(1,localDate);
-        log.info("2022-11-01 number 1 done !!");
         makeMatchDetailV2(2,localDate);
         log.info("2022-11-01 number 2 done !!");
         log.info("2022-11-01 end !!");
+        /*
         localDate = LocalDate.parse("2022-11-02");
         makeMatchDetailV2(1,localDate);
         log.info("2022-11-02 number 1 done !!");
@@ -73,7 +72,7 @@ public class RiotService implements ApplicationRunner{
         makeMatchDetailV2(2,localDate);
         log.info("2022-11-05 number 2 done !!");
         log.info("2022-11-05 end !!");
-        log.info("test end !!");
+        */
     }
     private void All(){
         LocalDate localDate = LocalDate.parse("2022-09-19");
@@ -126,8 +125,13 @@ public class RiotService implements ApplicationRunner{
         long makeMatchDetailV2Time = System.currentTimeMillis();
         while(start < matchSize) {
             Long time = System.currentTimeMillis();
-            List<MatchDetailEntity> matchDetailEntityList = matchDetailRepository.findAllByDate(dateString,start);
-            log.info( "matchDetailRepository.findAllByDate: dateString :{}, spentTime {}" ,dateString,time-System.currentTimeMillis());
+            List<MatchDetailEntity> matchDetailEntityList;
+            String matchId = "";
+            if(start == 0L)
+                matchDetailEntityList = matchDetailRepository.findAllByDate(dateString,start);
+            else
+                matchDetailEntityList = matchDetailRepository.findAllByDateAndMatchId(dateString,matchId);
+            log.info( "matchDetailRepository.findAllByDate: dateString :{}, spentTime :{}" ,dateString,System.currentTimeMillis() - time);
             log.info( "makeMatchDetailV2 - processing, " + start+ " / " + matchSize);
             Long processing100Time = System.currentTimeMillis();
             for (MatchDetailEntity matchDetailEntity : matchDetailEntityList) {
@@ -175,6 +179,8 @@ public class RiotService implements ApplicationRunner{
                 }
                 log.info(start +"번째 makeMatchDetail  spent time : " + (System.currentTimeMillis() - startTime));
                 start++;
+                if(start % 100 ==0)
+                    matchId = matchDetailEntity.getMatchId();
             }
             log.info("100개 단위 spent Time : " + (System.currentTimeMillis()-processing100Time) +"ms" );
             if(start % 1000 == 0){
