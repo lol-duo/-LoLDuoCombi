@@ -14,8 +14,7 @@ import java.time.LocalDate;
 @Entity
 @NoArgsConstructor
 @Table(name = "match_detail",indexes = {
-        @Index(name="date_index",columnList = "date"),
-        @Index(name="matchId_index",columnList = "match_id")})
+        @Index(name="date_match_id_index",columnList = "date,match_id")})
 @Getter
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 public class MatchDetailEntity {
