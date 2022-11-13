@@ -3,11 +3,19 @@ package com.lolduo.duo.v2.service;
 import com.lolduo.duo.v2.dto.RiotAPI.match_v5.Participant;
 import com.lolduo.duo.v2.dto.RiotAPI.match_v5.PerkStyle;
 import com.lolduo.duo.v2.entity.detail.*;
+import com.lolduo.duo.v2.entity.front.DoubleMatchFrontEntity;
+import com.lolduo.duo.v2.entity.front.SoloMatchFrontEntity;
 import com.lolduo.duo.v2.entity.gameInfo.DoubleMatchEntity;
 import com.lolduo.duo.v2.entity.gameInfo.SoloMatchEntity;
+import com.lolduo.duo.v2.entity.initialInfo.ChampionEntity;
+import com.lolduo.duo.v2.entity.initialInfo.PerkEntity;
 import com.lolduo.duo.v2.repository.detail.*;
+import com.lolduo.duo.v2.repository.front.DoubleMatchFrontRepository;
+import com.lolduo.duo.v2.repository.front.SoloMatchFrontRepository;
 import com.lolduo.duo.v2.repository.gameInfo.DoubleMatchRepository;
 import com.lolduo.duo.v2.repository.gameInfo.SoloMatchRepository;
+import com.lolduo.duo.v2.repository.initialInfo.ChampionRepository;
+import com.lolduo.duo.v2.repository.initialInfo.PerkRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -34,6 +42,90 @@ public class SoloParser {
     private final SoloMatchRepository soloMatchRepository;
     private final DoubleMatchRepository doubleMatchRepository;
 
+    private final SoloMatchFrontRepository soloMatchFrontRepository;
+    private final DoubleMatchFrontRepository doubleMatchFrontRepository;
+
+    private final PerkRepository perkRepository;
+    private final ChampionRepository championRepository;
+
+    private final Long PICK_RATE_CONSTANT = 200L;
+    private final String FILE_EXTENSION =".svg";
+    private final String cloudFrontBaseUrl ="https://d2d4ci5rabfoyr.cloudfront.net";
+
+    public void updateSoloMatchFront(int number){
+        Long MINIMUM_NUMBER;
+        if(number == 1){
+            MINIMUM_NUMBER =soloMatchRepository.getAllCountSum().orElse(200L)/PICK_RATE_CONSTANT;
+            getSoloMatchFrontListWhereAllCountIsEnough(MINIMUM_NUMBER);
+        }
+        else if(number == 2) {
+            MINIMUM_NUMBER = doubleMatchRepository.getAllCountSum().orElse(200L)/PICK_RATE_CONSTANT;
+            getDoubleMatchFrontListWhereAllCountIsEnough(MINIMUM_NUMBER);
+        }
+    }
+    private void getSoloMatchFrontListWhereAllCountIsEnough(Long allCount){
+        List<SoloMatchEntity> soloMatchEntityList = soloMatchRepository.findAllByAllCount(allCount);
+        if(soloMatchEntityList == null || soloMatchEntityList.size()==0)
+            log.info("allCount : {} solo_match 값존재 x",allCount);
+        for(SoloMatchEntity soloMatchEntity : soloMatchEntityList){
+            SoloMatchFrontEntity soloMatchFrontEntity;
+            soloMatchFrontEntity = soloMatchFrontRepository.findBySoloMatchId(soloMatchEntity.getId()).orElse(null);
+            if(soloMatchFrontEntity == null)
+                soloMatchFrontEntity = parseToSoloMatchEntityToFront(soloMatchEntity);
+            else
+                soloMatchFrontEntity.setWinRate((long)(((double)soloMatchEntity.getWinCount()/soloMatchEntity.getAllCount()) * 10000));
+            soloMatchFrontRepository.save(soloMatchFrontEntity);
+        }
+        log.info("getSoloMatchFrontListWhereAllCountIsEnough end !!");
+    }
+    private SoloMatchFrontEntity parseToSoloMatchEntityToFront(SoloMatchEntity soloMatchEntity){
+        String[] championInfo = getChampionInfoUrlByChampionId(soloMatchEntity.getChampionId());
+        String championName = championInfo[0];
+        String championImgUrl = championInfo[1];
+        String mainRuneImgUrl = getRuneImgUrlByRuneId(soloMatchEntity.getMainRune(),true);
+        String positionImgUrl = cloudFrontBaseUrl + "/mainPage/position/" + soloMatchEntity.getPosition() + FILE_EXTENSION;
+        String position = soloMatchEntity.getPosition();
+        Long championId = soloMatchEntity.getChampionId();
+        Long mainRune = soloMatchEntity.getMainRune();
+        Long winRate = (long)(((double)soloMatchEntity.getWinCount()/soloMatchEntity.getAllCount()) * 10000);
+        return new SoloMatchFrontEntity(soloMatchEntity.getId(),championName,championImgUrl,mainRuneImgUrl,positionImgUrl,position,championId,mainRune,winRate);
+    }
+    private DoubleMatchFrontEntity parseToDoubleMatchEntityToFront(DoubleMatchEntity doubleMatchEntity){
+        String[] championInfo1 = getChampionInfoUrlByChampionId(doubleMatchEntity.getChampionId1());
+        String[] championInfo2 = getChampionInfoUrlByChampionId(doubleMatchEntity.getChampionId2());
+        String championName1 = championInfo1[0];
+        String championName2 = championInfo2[0];
+        String championImgUrl1 = championInfo1[1];
+        String championImgUrl2 = championInfo2[1];
+        String mainRuneImgUrl1 = getRuneImgUrlByRuneId(doubleMatchEntity.getMainRune1(),true);
+        String mainRuneImgUrl2 = getRuneImgUrlByRuneId(doubleMatchEntity.getMainRune2(),true);
+        String positionImgUrl1 = cloudFrontBaseUrl + "/mainPage/position/" + doubleMatchEntity.getPosition1() + FILE_EXTENSION;
+        String positionImgUrl2 = cloudFrontBaseUrl + "/mainPage/position/" + doubleMatchEntity.getPosition2() + FILE_EXTENSION;
+        String position1 = doubleMatchEntity.getPosition1();
+        String position2 = doubleMatchEntity.getPosition2();
+        Long championId1 = doubleMatchEntity.getChampionId1();
+        Long championId2 = doubleMatchEntity.getChampionId2();
+        Long mainRune1 = doubleMatchEntity.getMainRune1();
+        Long mainRune2 = doubleMatchEntity.getMainRune2();
+        Long winRate = (long)(((double)doubleMatchEntity.getWinCount()/doubleMatchEntity.getAllCount()) * 10000);
+        return new DoubleMatchFrontEntity(doubleMatchEntity.getId(),championName1,championName2,championImgUrl1,championImgUrl2,mainRuneImgUrl1,mainRuneImgUrl2,positionImgUrl1,positionImgUrl2,position1,position2,championId1,championId2,mainRune1,mainRune2,winRate);
+
+    }
+    private void getDoubleMatchFrontListWhereAllCountIsEnough(Long allCount){
+        List<DoubleMatchEntity> doubleMatchEntityList = doubleMatchRepository.findAllByAllCount(allCount);
+        if(doubleMatchEntityList ==null || doubleMatchEntityList.size()==0)
+            log.info("allCount : {} double_match 값 존재 x",allCount);
+        for(DoubleMatchEntity doubleMatchEntity : doubleMatchEntityList){
+            DoubleMatchFrontEntity doubleMatchFrontEntity;
+            doubleMatchFrontEntity = doubleMatchFrontRepository.findByDoubleMatchId(doubleMatchEntity.getId()).orElse(null);
+            if(doubleMatchFrontEntity == null)
+                doubleMatchFrontEntity = parseToDoubleMatchEntityToFront(doubleMatchEntity);
+            else
+                doubleMatchFrontEntity.setWinRate((long)(((double)doubleMatchEntity.getWinCount()/doubleMatchEntity.getAllCount()) *10000));
+            doubleMatchFrontRepository.save(doubleMatchFrontEntity);
+        }
+        log.info("getDoubleMatchFrontListWhereAllCountIsEnough end !!");
+    }
     public SpellCombEntity toSpellComb(Participant participant){
         List<Long> spellList = new ArrayList<>();
         spellList.add(participant.getSummoner1Id());
@@ -232,5 +324,34 @@ public class SoloParser {
             doubleCombIdArr[0] = doubleCombIdArr[1];
             doubleCombIdArr[1] =tempCo;
         }
+    }
+
+    private String getRuneImgUrlByRuneId(Long runeId,boolean isActive){
+        String perkImgUrl ="";
+        PerkEntity perkEntity = perkRepository.findById(runeId).orElse(null);
+        if(perkEntity ==null)
+            log.info("perk_id 테이블에서 스펠을 찾을 수 없습니다. perk_id 테이블을 확인해주세요.  요청 id: {}",runeId);
+        else {
+            if(isActive)
+                perkImgUrl = cloudFrontBaseUrl + "/Rune/" + perkEntity.getImgUrl() + FILE_EXTENSION;
+            else
+                perkImgUrl = cloudFrontBaseUrl + "/Rune/" + perkEntity.getImgUrl() +"Disabled"+ FILE_EXTENSION;
+        }
+        return perkImgUrl;
+    }
+    private String[] getChampionInfoUrlByChampionId(Long championId){
+        String[] championInfoArr = new String[2];
+        championInfoArr[0] = "NoName";
+        championInfoArr[1] = "NoImg";
+        ChampionEntity championEntity = championRepository.findById(championId).orElse(null);
+        if (championEntity == null)
+            log.info("챔피언 테이블에서 챔피언을 찾을 수 없습니다. champion 테이블을 확인해주세요.  championId: {}", championId);
+        else {
+            championInfoArr[0] = championEntity.getName();
+            championInfoArr[1] = cloudFrontBaseUrl + "/champion/" + championEntity.getImgUrl() + FILE_EXTENSION;
+
+        }
+
+        return championInfoArr;
     }
 }

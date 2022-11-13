@@ -9,8 +9,12 @@ import java.util.List;
 import java.util.Optional;
 
 public interface SoloMatchRepository extends JpaRepository<SoloMatchEntity, Long>{
-    @Query(value ="select * from solo_match where date = ?1 limit ?2,1000",nativeQuery = true)
-    List<SoloMatchEntity> findAllByDate(LocalDate localDate,Long start);
+    @Query(value ="select * from solo_match where all_count > ?1",nativeQuery = true)
+    List<SoloMatchEntity> findAllByAllCount(Long allCount);
+
+    @Query(value = "select floor(sum(all_count)/10) from solo_match",nativeQuery = true)
+    Optional<Long> getAllCountSum();
+
     @Query(value ="select count(date) from solo_match where date =?1",nativeQuery = true)
     Optional<Long> findSizeByDate(LocalDate localdate);
 
