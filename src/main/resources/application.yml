@@ -43,7 +43,7 @@ spring:
     hibernate:
       ddl-auto: update
     defer-datasource-initialization: true
-    show-sql: false
+    show-sql: true
 slack:
   token: ${localkey.slackapi.token}
 riot:
