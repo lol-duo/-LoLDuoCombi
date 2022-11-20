@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @Entity
 @NoArgsConstructor
 @Getter
-@Table(name = "double_match_test",indexes = {
+@Table(name = "double_match",indexes = {
         @Index(name="all_count_index",columnList = "all_count"),
         @Index(name="date_index",columnList = "date"),
         @Index(name="multi_index",columnList = "position1,position2, champion_id1,champion_id2,main_rune1,main_rune2",unique = true),
