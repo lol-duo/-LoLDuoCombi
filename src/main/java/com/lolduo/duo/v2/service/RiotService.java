@@ -52,19 +52,17 @@ public class RiotService implements ApplicationRunner{
     @Override
     public void run(ApplicationArguments args) throws Exception{
         //All();
-        log.info("make Front start!");
         localTest();
         //soloParser.updateSoloMatchFront(1);
         //soloParser.updateSoloMatchFront(2);
-        log.info("make Front end!");
     }
     private void localTest(){
-        LocalDate localDate = LocalDate.parse("2022-11-05");
+        LocalDate localDate = LocalDate.parse("2022-11-01");
         makeMatchDetailV2(1,localDate);
+        log.info("2022-11-01 number 1 done !!");
         makeMatchDetailV2(2,localDate);
-        log.info("2022-11-05 number 1 done !!");
-        log.info("2022-11-05 number 2 done !!");
-        log.info("2022-11-05 end !!");
+        log.info("2022-11-01 number 2 done !!");
+        log.info("2022-11-01 end !!");
         /*
         localDate = LocalDate.parse("2022-11-02");
         makeMatchDetailV2(1,localDate);
