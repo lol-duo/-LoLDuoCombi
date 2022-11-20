@@ -52,9 +52,9 @@ public class RiotService implements ApplicationRunner{
     @Override
     public void run(ApplicationArguments args) throws Exception{
         //All();
-        localTest();
-        //soloParser.updateSoloMatchFront(1);
-        //soloParser.updateSoloMatchFront(2);
+        //localTest();
+        soloParser.updateSoloMatchFront(1);
+        soloParser.updateSoloMatchFront(2);
     }
     private void localTest(){
         LocalDate localDate = LocalDate.parse("2022-11-01");
