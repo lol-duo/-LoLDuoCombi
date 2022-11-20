@@ -53,15 +53,18 @@ public class RiotService implements ApplicationRunner{
     public void run(ApplicationArguments args) throws Exception{
         //All();
         log.info("make Front start!");
-        soloParser.updateSoloMatchFront(1);
-        soloParser.updateSoloMatchFront(2);
+        localTest();
+        //soloParser.updateSoloMatchFront(1);
+        //soloParser.updateSoloMatchFront(2);
         log.info("make Front end!");
     }
     private void localTest(){
-        LocalDate localDate = LocalDate.parse("2022-11-01");
+        LocalDate localDate = LocalDate.parse("2022-11-05");
+        makeMatchDetailV2(1,localDate);
         makeMatchDetailV2(2,localDate);
-        log.info("2022-11-01 number 2 done !!");
-        log.info("2022-11-01 end !!");
+        log.info("2022-11-05 number 1 done !!");
+        log.info("2022-11-05 number 2 done !!");
+        log.info("2022-11-05 end !!");
         /*
         localDate = LocalDate.parse("2022-11-02");
         makeMatchDetailV2(1,localDate);
@@ -126,10 +129,11 @@ public class RiotService implements ApplicationRunner{
         long start = 0L;
         log.info("makeMatchDetailV2 function matchSize : " + matchSize );
         long makeMatchDetailV2Time = System.currentTimeMillis();
+        String matchId = "";
         while(start < matchSize) {
             Long time = System.currentTimeMillis();
             List<MatchDetailEntity> matchDetailEntityList;
-            String matchId = "";
+
             if(start == 0L)
                 matchDetailEntityList = matchDetailRepository.findAllByDate(dateString,start);
             else
