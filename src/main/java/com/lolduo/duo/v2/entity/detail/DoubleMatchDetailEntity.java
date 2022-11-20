@@ -8,7 +8,7 @@ import javax.persistence.*;
 @Entity
 @NoArgsConstructor
 @Getter
-@Table(name = "double_match_detail",indexes = {
+@Table(name = "double_match_detail_test",indexes = {
         @Index(name="double_match_detail_index",columnList = "all_count, win_rate desc, champion_comb_id1, champion_comb_id2 "),
         @Index(name="multiIndex",columnList = "champion_comb_id1, item_comb_id1, rune_comb_id1, spell_comb_id1, champion_comb_id2, item_comb_id2, rune_comb_id2, spell_comb_id2")})
 public class DoubleMatchDetailEntity {
