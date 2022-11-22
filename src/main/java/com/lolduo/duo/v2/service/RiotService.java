@@ -60,12 +60,13 @@ public class RiotService implements ApplicationRunner{
         log.info("makeCombi  done !!");
     }
     private void localTest(){
-        LocalDate localDate = LocalDate.parse("2022-11-02");
+        String date = "2022-11-06";
+        LocalDate localDate = LocalDate.parse(date);
         makeMatchDetailV2(1,localDate);
-        log.info("2022-11-02 number 1 done !!");
+        log.info(date+" number 1 done !!");
         makeMatchDetailV2(2,localDate);
-        log.info("2022-11-02 number 2 done !!");
-        log.info("2022-11-02 end !!");
+        log.info(date+" number 2 done !!");
+        log.info(date+" end !!");
         /*
         localDate = LocalDate.parse("2022-11-02");
         makeMatchDetailV2(1,localDate);
